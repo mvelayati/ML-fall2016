@@ -69,12 +69,14 @@ lr = 0.001
 e = 0.001
 
 # test effect of lambda on traning and test SSE
-sp = np.arange(0.1,10,0.1)
+sp = np.arange(0.01,10,0.01)
 sp_loss = []
 test_loss = []
+norm_grad = []
 for i in sp:
     w = np.zeros(len(x[0]))
     w, cost = gradient_descent(x,y,w,i,lr,e)
+    norm_grad.append(np.linalg.norm(w))
     sp_loss.append(cost[-1])
     h = xp.dot(w)
     error = h-yp
@@ -87,12 +89,18 @@ print test_loss
 
 # plot lambda test
 mpl.rc('text', usetex = True)
-fig = plt.figure()
-plt.plot(sp, sp_loss, '-k', label='training set')
-plt.plot(sp, test_loss, '--k', label='test set')
+fig = plt.figure(figsize=(5,4))
+plt.plot(sp, sp_loss, '-k', label=r'$\rm{train}$')
+plt.plot(sp, test_loss, '--k', label=r'$\rm{test}$')
 plt.xscale('log')
-plt.xlabel(r'$\rm{log}_{10}(\lambda$)')
-plt.ylabel(r'$\rm{J}(w)$')
-plt.legend(loc='upper right')
-fig.savefig("test_lambda.png")
+plt.xlabel(r'$\rm{log}_{10}(\lambda$)', fontsize=10)
+plt.ylabel(r'$\rm{J}(w)$', fontsize=10)
+plt.legend(loc='upper right', fontsize=10)
+fig.savefig("test_lambda.png", dpi=200)
 
+fig = plt.figure(figsize=(5,4))
+plt.plot(sp, norm_grad, '-k')
+plt.xscale('log')
+plt.xlabel(r'$\rm{log}_{10}(\lambda)$', fontsize=10)
+plt.ylabel(r'$||\nabla \rm{J}(w)||$', fontsize=10)
+fig.savefig('norm_lambda.png', dpi=200)
