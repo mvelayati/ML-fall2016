@@ -80,23 +80,33 @@ Equations 3 and 4 are used in a batch gradient descent algorithm where the param
 
 \vspace{3mm}
 
-In the algorithm, parameters $\vec{w}$ are initialized to the zero vector of size $M$: the number of features in $\vec{x}_i$. These parameters are iteratively updated by the regularized gradient of $J(\vec{w})$ scaled by the hyper-parameter $\alpha$, called the learning rate. An inherent trade-off exists in the selection of this parameter. If the learning rate is too small the algorithm will be slow to converge or may not converge at all. A large learning can result in overstepping the optimum and oscillating out of control to infinity. Prior to tunning the regularization parameter, we will explore different learning rates.
+In the algorithm, parameters $\vec{w}$ are initialized to the zero vector of size $M$: the number of features in $\vec{x}_i$. These parameters are iteratively updated by the regularized gradient of $J(\vec{w})$ scaled by the hyper-parameter $\alpha$, called the learning rate. An inherent trade-off exists in the selection of this parameter. If the learning rate is too small, then the algorithm will be slow to converge or may not converge at all. A large learning rate can result in overstepping the optimum and oscillating out of control to infinity. Prior to tunning the regularization parameter, we will explore different learning rates.
 
 \subsection{Learning rate selection (10 pts)}
 
 \section{Tunning the regularizer (20 pts)}
 
-\begin{figure}[htp]
+We tested a range of regularization values in order to investigate the effect of $\lambda$ on the magnitude of the weights and objective value of the cost function. Initially, we found that values less then $10^{-2}$ had little effect on the weights. Furthermore, values greater than $10^2$ caused the gradient to be large enough to overstep the optimum and oscillate out of control. Thus, we restricted our test to the sequence $(\lambda_i)_{i=1}^{n}$ given by $\lambda_i = \frac{10i}{n}, n = 10^3$.
+
+We performed gradient descent on the training set for each $\lambda_i$ holding all other hyper-parameters constant. For each $\lambda_i$ we calculated the corresponding magnitude of the optimized weights vector $\vec{w}_i^*$ to confirm that the regularization term was properly driving the weights to be sufficiently small. Figure 1 shows this relationship.
+
+\begin{figure}[t]
 \centering
 \includegraphics[width=\textwidth]{norm_lambda.png}
-\caption{The effect of different $\lambda$ values on the norm of the gradient.}
+\caption{The effect of different $\lambda$ values on the norm of the optimized weights.}
 \end{figure}
 
-\begin{figure}[htp]
+For each $\lambda_i$ we also calculated SSE for both the training set and test set. This reveals an interesting relationship shown Figure 2. As the regularization parameter increases, the SSE objective function value for the training set increases. This is expected as the absence of regularization results in the best fit regressor for the training set and objective function values depart from the optimum as more control is enforced via regularization. 
+
+Conversely, as the regularization parameter increase, the SSE objective function value for the test set decrease, then increases approximately proportional to the training SSE. Regularization is a direct treatment for overfitting, and overfitting is often manifest in the performance of the regressor on a test set. We can see in Figure 2 by enforcing parsimonious weights in the model, performance on the test set improves. However, as expected, this trend will eventually digress when regularization becomes too confining on the magnitude of the weights, discouraging the algorithm to sufficiently learn good parameters for either dataset. This phenomenon is know as underfitting and is often evident in poor performance on both the training and test sets.
+
+\begin{figure}[t]
 \centering
 \includegraphics[width=\textwidth]{test_lambda.png}
-\caption{The effect of different $\lambda$ values on the training SSE (solid) and the test SSE (dashed)}
+\caption{The effect of different $\lambda$ values on the training SSE (solid) and the test SSE (dashed). \textbf{N.B.} This is a subset of the range of $\lambda$ values test to show intersection of the trends.}
 \end{figure}
+
+According to our tests we recommend values in the range $1 \le \lambda \le 2$ as the regularization parameter for this dataset.
 
 \section{10-fold cross-validation (30 pts)}
 
