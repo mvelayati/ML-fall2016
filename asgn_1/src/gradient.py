@@ -32,9 +32,7 @@ xp[:, 0] = 1
 def gradient_descent(x, y, w, p, l_rate, e):
     cost = []
     reg_term = []
-    m = y.size
     norm_gradient = []
-    norm_gradient_dummy = []
     gradient = np.inf
     norm_gradient.append(np.linalg.norm(gradient))
 
@@ -50,18 +48,14 @@ def gradient_descent(x, y, w, p, l_rate, e):
         error = h - y
 
         # compute gradient and regularization
-        dummy = x.T.dot(error)
-        gradient = (dummy) + (2 * p * w)
+        gradient = x.T.dot(error) + (2 * p * w)
         norm_gradient.append(np.linalg.norm(gradient))
-        norm_gradient_dummy.append(np.linalg.norm(dummy))
 
         # update parameters
-        # w = np.subtract(w, l_rate * gradient)
-        w = w - l_rate * gradient
+        w -= l_rate * gradient
 
         # store objective
         if cnt % 100 == 0:
-            # cost.append(np.sum(error**2)/(2*m))
             reg_term.append(np.linalg.norm(w))
             cost.append(np.sum(error ** 2) / 2)
             print("{} , {} , {} , {}".format(cost[-1], norm_gradient[-1], l_rate, p))
@@ -102,11 +96,10 @@ def part1():
 
     # hyper-parameters
     p = 0.85
-    # lr = 0.001
-    e = 0.001
-    sp = .1
+    e = 0.0001
+    sp = .001
 
-    lr = np.arange(0.0006, 0.00063, 0.00001)
+    lr = np.arange(0.00062, 0.000639, 0.000001)
     sp_loss = []
     test_loss = []
     norm_grad = []
@@ -119,17 +112,18 @@ def part1():
         h = xp.dot(w)
         error = h - yp
         test_loss.append((np.sum(error ** 2) / 2))
+    print(test_loss)
 
     # plot learning rate test
-    # mpl.rc('text', usetex = True)
     fig = plt.figure(figsize=(5, 4))
     plt.plot(lr, sp_loss, '-k')
     plt.plot(lr, test_loss, '--k')
-    # plt.xscale('log')
-    # plt.xlabel(r'$\rm{log}_{10}(\learning rate$)', fontsize=10)
-    # plt.ylabel(r'$\rm{J}(w)$', fontsize=10)
-    # plt.legend(loc='upper right', fontsize=10)
-    # fig.savefig("test_learning_rate.png")
+    plt.xscale('log')
+    plt.yticks(np.arange(50000, 200000, 400000))
+    plt.xlabel('learning rate', fontsize=10)
+    plt.ylabel('SSE', fontsize=10)
+    plt.legend(loc='upper right', fontsize=10)
+    #fig.savefig("test_learning_rate.png")
     plt.show()
 
 
@@ -141,12 +135,11 @@ def part2():
 
     # hyper-parameters
     p = 0.85
-    lr = 0.0006
+    lr = 0.00063
     e = 0.001
 
-    # test effect of lambda on traning and test SSE
-    sp = np.arange(0.01, 10, 0.01)
-    sp = np.arange(0.1,10,0.1)
+    # test effect of lambda on training and test SSE
+    sp = np.arange(0.001,10,0.01)
     sp_loss = []
     test_loss = []
     norm_grad = []
@@ -157,24 +150,30 @@ def part2():
         sp_loss.append(cost[-1])
         h = xp.dot(w)
         error = h - yp
-        test_loss.append((np.sum(error ** 2) / 2))
+        test_loss.append((np.sum(error ** 2)/2))
 
-        # print i
+    print(test_loss)
 
-    # print sp_loss
-    # print test_loss
+
 
     # plot lambda test
     # mpl.rc('text', usetex = True)
     fig = plt.figure(figsize=(5, 4))
-    mpl.rc('text', usetex = True)
+    #mpl.rc('text', usetex = True)
     mpl.rcParams['text.latex.preamble']=[r"\usepackage{amsmath}", r"\renewcommand{\vec}[1]{\mathbf{#1}}"]
     fig = plt.figure(figsize=(5,4))
     plt.plot(sp, sp_loss, '-k', label=r'$\rm{train}$')
+    plt.xscale('log')
+    plt.xlabel('log lambda', fontsize=10)
+    plt.ylabel('SSE', fontsize=10)
+    plt.legend(loc='upper right', fontsize=10)
+    fig.savefig("train_lambda.png", dpi=200)
+
+    fig = plt.figure(figsize=(5, 4))
     plt.plot(sp, test_loss, '--k', label=r'$\rm{test}$')
     plt.xscale('log')
-    plt.xlabel(r'$\rm{log}_{10}(\lambda_i$)', fontsize=10)
-    plt.ylabel(r'$\rm{J}(\vec{w}^*)$', fontsize=10)
+    plt.xlabel('log lambda', fontsize=10)
+    plt.ylabel('SSE', fontsize=10)
     plt.legend(loc='upper right', fontsize=10)
     fig.savefig("test_lambda.png", dpi=200)
 
@@ -186,19 +185,19 @@ def part2():
     fig.savefig('norm_lambda.png', dpi=200)
 
 
-# =================================
+# ================================
 # Part 3: 10-fold cross-validation
-# =================================
+# ================================
 
 def part3():
 
     # hyper-parameters
     p = 0.85
-    lr = 0.0006
+    lr = 0.00063
     e = 0.001
 
     # test effect of lambda on traning and test SSE
-    sp = np.arange(0.01, 0.05, 0.01)
+    sp = np.arange(0.001,10,0.01)
     sp_loss = []
     sse_lambda_array = []
     norm_grad = []
@@ -213,10 +212,13 @@ def part3():
             ten_fold_dataset = create_tenfold_sets(dataset)
             ten_fold_indices = range(len(ten_fold_dataset))
             for ten_fold_index in ten_fold_indices:
+                #dataset_temp_1 = np.split(ten_fold_dataset, [ten_fold_index, ten_fold_index+1])[0]
+                #dataset_temp_2 = np.split(ten_fold_dataset, [ten_fold_index, ten_fold_index + 1])[2]
+                #dataset_temp = np.vstack((np.vstack(dataset_temp_1), np.vstack(dataset_temp_2)))
                 for index in [x for x in ten_fold_indices if x != ten_fold_index]:
                     dummy = np.vstack((dataset_temp, np.array(ten_fold_dataset[index])))
-                    dataset_temp = dummy
-                dataset_temp = np.split(dataset_temp, 10)[2]
+                    dataset_temp = np.array(dummy)
+                dataset_temp = np.split(dataset_temp, [0, 10])[2]
                 w, cost = gradient_descent(dataset_temp[:, :-1], dataset_temp[:, -1], w, lambda_cof, lr, e)
                 h = np.array(ten_fold_dataset[ten_fold_index])[:,:-1].dot(w)
                 error = h - np.array(ten_fold_dataset[ten_fold_index])[:, -1]
@@ -226,7 +228,7 @@ def part3():
         return sse_lambda_array
 
     sse_lambda_array = ten_fold_cross_validation(x, y)
-
+    print(sse_lambda_array)
     fig = plt.figure(figsize=(5, 4))
     plt.plot(sp, sse_lambda_array, '-k')
     plt.xscale('log')
@@ -236,8 +238,8 @@ def part3():
 
 
 def main():
-    #part1()
-    #part2()
+    # part1()
+    # part2()
     part3()
 
 main()
