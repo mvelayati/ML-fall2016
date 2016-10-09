@@ -33,13 +33,13 @@ def gradient_descent(x, y, w, p, l_rate, e):
     cost = []
     reg_term = []
     norm_gradient = []
-    gradient = np.inf
+    gradient = np.full(len(w), 5)
     norm_gradient.append(np.linalg.norm(gradient))
 
     cnt = 0
 
     # repeat until convergence
-    while (np.linalg.norm(gradient) > e):
+    while (np.linalg.norm(gradient) > e) and (norm_gradient[-1] < 1000000):
 
         # hypothesis
         h = x.dot(w)
@@ -135,11 +135,11 @@ def part2():
 
     # hyper-parameters
     p = 0.85
-    lr = 0.00063
+    lr = 0.0005
     e = 0.001
 
     # test effect of lambda on training and test SSE
-    sp = np.arange(0.001,10,0.01)
+    sp = np.arange(0.1, 436.5,0.09)
     sp_loss = []
     test_loss = []
     norm_grad = []
@@ -239,7 +239,7 @@ def part3():
 
 def main():
     # part1()
-    # part2()
-    part3()
+    part2()
+    # part3()
 
 main()
