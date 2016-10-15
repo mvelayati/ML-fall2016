@@ -46,7 +46,50 @@ class NaiveBayes(object):
         print 'Estimating priors...'
         self._compute_priors()
         print 'Estimating likelihoods...'
-        self._compute_likelihoods(alpha, beta)
+        self._compute_likelihoods(alpha, beta, model=model)
+
+    def test_classifier(self, model='binomial'):
+        """
+        Predict the class for each document
+        """
+
+        pred_labels = []
+
+        print 'Classifying dev set...'
+        for i in range(len(self.dev_set)):
+            if model == 'binomial':
+                doc = self._get_binomial_feature(self.dev_set[i])
+            if model == 'multinomial':
+                doc = self._get_multinomial_feature(self.dev_set[i])
+            pred_labels.append(self._predict(doc, model=model))
+
+        self.pred_labels = pred_labels
+
+    def get_confusion_matrix(self):
+        """
+        Print confusion matrix to console
+        """
+
+        cm = np.zeros((len(self.classes), len(self.classes)))
+        _class = self.classes
+
+        for i in range(len(self.pred_labels)):
+            if self.pred_labels[i] == self.dev_labels[i]:
+                if self.pred_labels[i] == _class[0]:
+                    cm[0,0] += 1
+                if self.pred_labels[i] == _class[1]:
+                    cm[1,1] += 1
+            else:
+                if self.pred_labels[i] == _class[0]:
+                    cm[0,1] += 1
+                if self.pred_labels[i] == _class[1]:
+                    cm[1,0] += 1
+
+        cm = (cm/float(len(self.pred_labels)))*100
+
+        print "{:20s} {:20s} {:20s}\n{:20s} {:2.2f} {:2.2f}\n{:20s} {:2.2f} {:2.2f}".format(
+                '', 'True ' + _class[0], 'True '+ _class[1], 'Pred ' + _class[0],
+                cm[0,0], cm[0,1], 'Pred ' + _class[1], cm[1,0], cm[1,1])
 
     def _get_vocabulary(self):
         """
@@ -73,7 +116,7 @@ class NaiveBayes(object):
 
         self.classes, Nk = np.unique(self.train_labels, return_counts=True)
 
-        # set classes as feature, priors and likelihood keys
+        # set classes as feature, priors and likelihood and total words keys
         for i in range(len(self.classes)):
             self.Nk[self.classes[i]] = Nk[i]
             self.features[self.classes[i]] = []
@@ -127,14 +170,19 @@ class NaiveBayes(object):
         for _class in self.classes:
             self.priors[_class] = self.Nk[_class]/N
 
-    def _compute_likelihoods(self, alpha, beta):
+    def _compute_likelihoods(self, alpha, beta, model='binomial'):
         """
         Estimate word likelihoods
         """
 
         for _class in self.classes:
             n = np.sum(self.features[_class], axis=0)
-            self.likelihoods[_class] = (n+alpha)/(self.Nk[_class]+beta)
+            t_words = np.sum(self.features[_class])
+            if model == 'binomial':
+                self.likelihoods[_class] = (n+alpha)/float(self.Nk[_class]+beta)
+            if model == 'multinomial':
+                self.likelihoods[_class] = (n+alpha)/float(t_words+beta)
+                print self.likelihoods[_class]
 
     def _bernoulli(self, doc, _class):
         """
@@ -186,9 +234,6 @@ class NaiveBayes(object):
 
 if __name__ == '__main__':
 
-    import time
-    start_time = time.time()
-
     # read documents and labels
     with open('clintontrump-data/clintontrump.tweets.train', 'r') as f:
         tweets_train = f.readlines()
@@ -206,13 +251,29 @@ if __name__ == '__main__':
     with open('clintontrump-data/clintontrump.labels.dev', 'r') as f:
         labels_dev = f.read().split()
 
-    classify = NaiveBayes(tweets_train, labels_train, tweets_dev, labels_dev)
-    classify.train_classifier(model='binomial', alpha=1, beta=2)
 
-    # classify this feature should be 'hillary'
-    tweet = np.zeros(classify.V_card)
-    tweet[0] = 1
-    tweet[1] = 1
-    print classify._predict(tweet, model='binomial')
+    # ===============
+    # Bernoulli Model
+    # ===============
 
-    print "Elapsed time: {0} s".format(time.time() - start_time)
+    bernoulli = NaiveBayes(tweets_train, labels_train, tweets_dev, labels_dev)
+    bernoulli.train_classifier(model='binomial', alpha=1, beta=2)
+
+    bernoulli.test_classifier()
+
+    # performance
+    bernoulli.get_confusion_matrix()
+
+    # =================
+    # Multinomial Model
+    # =================
+
+    multi = NaiveBayes(tweets_train, labels_train, tweets_dev, labels_dev)
+    multi.train_classifier(model='multinomial', alpha=1, beta=multi.V_card)
+
+    multi.test_classifier(model='multinomial')
+
+    # performance
+    multi.get_confusion_matrix()
+
+
