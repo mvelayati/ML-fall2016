@@ -4,6 +4,7 @@ cs534 Implementation Assignment 2
 """
 
 import numpy as np
+import string
 
 
 class NaiveBayes(object):
@@ -102,7 +103,6 @@ class NaiveBayes(object):
         self.V = np.unique(V_tmp)
         self.V_card = len(self.V)
 
-
     def _get_classes(self):
         """
         Get the class labels and number of documents in each class
@@ -188,8 +188,7 @@ class NaiveBayes(object):
         """
 
         log_sum = 0
-        for i in range(len(doc)):
-            log_sum += (doc[i]*np.log(self.likelihoods[_class][i]))+((1-doc[i])*np.log(1-self.likelihoods[_class][i]))
+        log_sum += np.dot(doc.T, np.log(self.likelihoods[_class])) + (np.dot((1-doc).T, np.log(1-self.likelihoods[_class])))
 
         return log_sum
 
@@ -199,15 +198,13 @@ class NaiveBayes(object):
         """
 
         log_sum = 0
-        for i in range(len(doc)):
-            log_sum += doc[i]*np.log(self.likelihoods[_class][i])
+        log_sum += np.dot(doc.T, np.log(self.likelihoods[_class]))
 
         return log_sum
 
-
     def _predict(self, doc, model='binomial'):
         """
-        Classify a document
+        Classify a document: argmax P(C|d)
         """
 
         max_score = -np.inf
@@ -235,6 +232,9 @@ if __name__ == '__main__':
     # read documents and labels
     with open('clintontrump-data/clintontrump.tweets.train', 'r') as f:
         tweets_train = f.readlines()
+
+    # remove punctuation and make all lower case
+    #tweets_train = [ doc.translate(string.maketrans("",""), string.punctuation).lower() for doc in tweets_train ]
 
     tweets_train = [ w.split() for w in tweets_train ]
 
