@@ -25,7 +25,6 @@ class NaiveBayes(object):
         self.Nk = {}
         self.priors = {}
         self.likelihoods = {}
-        self.Tk = {}
 
         # generate vocubulary on instaintiation
         print 'Generating vocabulary...'
@@ -117,7 +116,6 @@ class NaiveBayes(object):
             self.features[self.classes[i]] = []
             self.priors[self.classes[i]] = 0
             self.likelihoods[self.classes[i]] = 0
-            self.Tk[self.classes[i]] = []
 
     def _get_features(self, model='binomial'):
         """
@@ -133,10 +131,6 @@ class NaiveBayes(object):
             if model == 'multinomial':
                 f = self._get_multinomial_feature(self.train_set[i])
             self.features[self.train_labels[i]].append(f)
-            self.Tk[self.train_labels[i]].append(self.train_set[i])
-
-        for _class in self.classes:
-            self.Tk[_class] = [item for sub in self.Tk[_class] for item in sub]
 
     def _get_binomial_feature(self, doc):
         """
@@ -144,9 +138,9 @@ class NaiveBayes(object):
         """
 
         feature = np.zeros(self.V_card)
-        for i in range(self.V_card):
-            if self.V[i] in doc:
-                feature[i] = 1
+        idx_set = [ np.where(self.V == i) for i in doc ]
+        for i in idx_set:
+            feature[i] = 1
 
         return feature
 
@@ -159,8 +153,10 @@ class NaiveBayes(object):
         doc = np.array(doc)
 
         feature = np.zeros(self.V_card)
-        for i in range(self.V_card):
-            feature[i] = np.count_nonzero(doc == self.V[i])
+        idx_set = [ np.where(self.V == i)[0] for i in doc ]
+        for i in idx_set:
+            if i:
+                feature[i] = np.count_nonzero(doc == self.V[i])
 
         return feature
 
@@ -178,16 +174,9 @@ class NaiveBayes(object):
         Estimate word likelihoods
         """
 
-        # get total number of word from frequency matrix
-        t_words = 0
-        for _class in self.classes:
-            t_words += np.sum(self.features[_class])
-
         for _class in self.classes:
             n = np.sum(self.features[_class], axis=0)
-            print 'n: ', n
             Tk = np.sum(n)
-            print 'Tk: ', Tk
             if model == 'binomial':
                 self.likelihoods[_class] = (n+alpha)/float(self.Nk[_class]+beta)
             if model == 'multinomial':
@@ -264,9 +253,7 @@ if __name__ == '__main__':
     # ===============
     # Bernoulli Model
     # ===============
-
     bernoulli = NaiveBayes(tweets_train, labels_train, tweets_dev, labels_dev)
-    print bernoulli.V_card
     bernoulli.train_classifier(model='binomial', alpha=1, beta=2)
 
     bernoulli.test_classifier()
