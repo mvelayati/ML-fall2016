@@ -25,6 +25,7 @@ class NaiveBayes(object):
         self.Nk = {}
         self.priors = {}
         self.likelihoods = {}
+        self.Tk = {}
 
         # generate vocubulary on instaintiation
         print 'Generating vocabulary...'
@@ -61,6 +62,7 @@ class NaiveBayes(object):
                 doc = self._get_binomial_feature(self.dev_set[i])
             if model == 'multinomial':
                 doc = self._get_multinomial_feature(self.dev_set[i])
+
             pred_labels.append(self._predict(doc, model=model))
 
         self.pred_labels = pred_labels
@@ -96,18 +98,11 @@ class NaiveBayes(object):
         Constructs a unique set of words found in all training documents
         """
 
-        V_tmp = []
+        V_tmp = [ item for sub in self.train_set for item in sub ]
+        V_tmp = np.array(V_tmp)
+        self.V = np.unique(V_tmp)
+        self.V_card = len(self.V)
 
-        cnt = 0
-        for doc in self.train_set:
-            for word in doc:
-                if word not in V_tmp:
-                    V_tmp.append(word)
-                    cnt += 1
-
-        self.V = np.array(V_tmp)
-        self.V_card = len(V_tmp)
-        V_tmp = None
 
     def _get_classes(self):
         """
@@ -122,6 +117,7 @@ class NaiveBayes(object):
             self.features[self.classes[i]] = []
             self.priors[self.classes[i]] = 0
             self.likelihoods[self.classes[i]] = 0
+            self.Tk[self.classes[i]] = []
 
     def _get_features(self, model='binomial'):
         """
@@ -135,8 +131,12 @@ class NaiveBayes(object):
             if model == 'binomial':
                 f = self._get_binomial_feature(self.train_set[i])
             if model == 'multinomial':
-                f = self._get_multinomial_feature(np.array(self.train_set[i]))
+                f = self._get_multinomial_feature(self.train_set[i])
             self.features[self.train_labels[i]].append(f)
+            self.Tk[self.train_labels[i]].append(self.train_set[i])
+
+        for _class in self.classes:
+            self.Tk[_class] = [item for sub in self.Tk[_class] for item in sub]
 
     def _get_binomial_feature(self, doc):
         """
@@ -154,6 +154,9 @@ class NaiveBayes(object):
         """
         Helper function for `_get_features'
         """
+
+        # make doc a numpy array for np.count_nonzero method
+        doc = np.array(doc)
 
         feature = np.zeros(self.V_card)
         for i in range(self.V_card):
@@ -175,18 +178,24 @@ class NaiveBayes(object):
         Estimate word likelihoods
         """
 
+        # get total number of word from frequency matrix
+        t_words = 0
+        for _class in self.classes:
+            t_words += np.sum(self.features[_class])
+
         for _class in self.classes:
             n = np.sum(self.features[_class], axis=0)
-            t_words = np.sum(self.features[_class])
+            print 'n: ', n
+            Tk = np.sum(n)
+            print 'Tk: ', Tk
             if model == 'binomial':
                 self.likelihoods[_class] = (n+alpha)/float(self.Nk[_class]+beta)
             if model == 'multinomial':
-                self.likelihoods[_class] = (n+alpha)/float(t_words+beta)
-                print self.likelihoods[_class]
+                self.likelihoods[_class] = (n+alpha)/float(Tk+beta)
 
     def _bernoulli(self, doc, _class):
         """
-        Bernoulii model
+        Bernoulli model
         """
 
         log_sum = 0
@@ -257,6 +266,7 @@ if __name__ == '__main__':
     # ===============
 
     bernoulli = NaiveBayes(tweets_train, labels_train, tweets_dev, labels_dev)
+    print bernoulli.V_card
     bernoulli.train_classifier(model='binomial', alpha=1, beta=2)
 
     bernoulli.test_classifier()
