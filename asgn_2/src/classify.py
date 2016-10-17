@@ -6,6 +6,7 @@ cs534 Implementation Assignment 2
 import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib as mpl
+import string
 
 
 class NaiveBayes(object):
@@ -27,7 +28,6 @@ class NaiveBayes(object):
         self.Nk = {}
         self.priors = {}
         self.likelihoods = {}
-        self.Tk = {}
 
         # generate vocubulary on instaintiation
         print('Generating vocabulary...')
@@ -106,7 +106,6 @@ class NaiveBayes(object):
         self.V = np.unique(V_tmp)
         self.V_card = len(self.V)
 
-
     def _get_classes(self):
         """
         Get the class labels and number of documents in each class
@@ -120,7 +119,6 @@ class NaiveBayes(object):
             self.features[self.classes[i]] = []
             self.priors[self.classes[i]] = 0
             self.likelihoods[self.classes[i]] = 0
-            self.Tk[self.classes[i]] = []
 
     def _get_features(self, model='binomial'):
         """
@@ -136,10 +134,6 @@ class NaiveBayes(object):
             if model == 'multinomial':
                 f = self._get_multinomial_feature(self.train_set[i])
             self.features[self.train_labels[i]].append(f)
-            self.Tk[self.train_labels[i]].append(self.train_set[i])
-
-        for _class in self.classes:
-            self.Tk[_class] = [item for sub in self.Tk[_class] for item in sub]
 
     def _get_binomial_feature(self, doc):
         """
@@ -147,9 +141,9 @@ class NaiveBayes(object):
         """
 
         feature = np.zeros(self.V_card)
-        for i in range(self.V_card):
-            if self.V[i] in doc:
-                feature[i] = 1
+        idx_set = [ np.where(self.V == i) for i in doc ]
+        for i in idx_set:
+            feature[i] = 1
 
         return feature
 
@@ -162,8 +156,10 @@ class NaiveBayes(object):
         doc = np.array(doc)
 
         feature = np.zeros(self.V_card)
-        for i in range(self.V_card):
-            feature[i] = np.count_nonzero(doc == self.V[i])
+        idx_set = [ np.where(self.V == i)[0] for i in doc ]
+        for i in idx_set:
+            if i:
+                feature[i] = np.count_nonzero(doc == self.V[i])
 
         return feature
 
@@ -181,16 +177,9 @@ class NaiveBayes(object):
         Estimate word likelihoods
         """
 
-        # get total number of word from frequency matrix
-        t_words = 0
-        for _class in self.classes:
-            t_words += np.sum(self.features[_class])
-
         for _class in self.classes:
             n = np.sum(self.features[_class], axis=0)
-            print('n: ', n)
             Tk = np.sum(n)
-            print('Tk: ', Tk)
             if model == 'binomial':
                 self.likelihoods[_class] = (n+alpha)/float(self.Nk[_class]+beta)
             if model == 'multinomial':
@@ -203,8 +192,7 @@ class NaiveBayes(object):
         """
 
         log_sum = 0
-        for i in range(len(doc)):
-            log_sum += (doc[i]*np.log(self.likelihoods[_class][i]))+((1-doc[i])*np.log(1-self.likelihoods[_class][i]))
+        log_sum += np.dot(doc.T, np.log(self.likelihoods[_class])) + (np.dot((1-doc).T, np.log(1-self.likelihoods[_class])))
 
         return log_sum
 
@@ -214,15 +202,13 @@ class NaiveBayes(object):
         """
 
         log_sum = 0
-        for i in range(len(doc)):
-            log_sum += doc[i]*np.log(self.likelihoods[_class][i])
+        log_sum += np.dot(doc.T, np.log(self.likelihoods[_class]))
 
         return log_sum
 
-
     def _predict(self, doc, model='binomial'):
         """
-        Classify a document
+        Classify a document: argmax P(C|d)
         """
 
         max_score = -np.inf
@@ -259,21 +245,21 @@ class NaiveBayes(object):
 
     def MAP_estimation(self):
         accuracy_arr = []
-        alpha_coef = np.arange(0.5, 1, 0.1)
+        alpha_coef = np.arange(0.00001, 1, 0.05)
         for coef in alpha_coef:
-            self.train_classifier(model='multinomial', alpha=1, beta=multi.V_card*coef)
+            self.train_classifier(model='multinomial', alpha=coef, beta=self.V_card*coef)
             self.test_classifier(model='multinomial')
             accu = self.report_accuracy()
             print('accuracy = {}'.format(accu))
             accuracy_arr.append(accu)
             self.get_confusion_matrix()
 
-        fig = plt.figure(figsize=(5, 4))
-        plt.plot(alpha_coef, accuracy_arr, '-k', label=r'$\rm{Accuracy VS alpha coefficient}$')
-        plt.xscale('log')
+        fig = plt.figure(figsize=(6, 5))
+        plt.plot(alpha_coef, accuracy_arr, '-k', label=r'$\rm{Accuracy}$')
+        # plt.xscale('log')
         plt.xlabel(r'alpha coefficient', fontsize=10)
         plt.ylabel(r'accuracy', fontsize=10)
-        plt.legend(loc='upper right', fontsize=10)
+        plt.legend(loc='upper left', fontsize=10)
         fig.savefig("Accuracy_alpha", dpi=200)
 
 if __name__ == '__main__':
@@ -281,6 +267,9 @@ if __name__ == '__main__':
     # read documents and labels
     with open('clintontrump-data/clintontrump.tweets.train', 'r') as f:
         tweets_train = f.readlines()
+
+    # remove punctuation and make all lower case
+    #tweets_train = [ doc.translate(string.maketrans("",""), string.punctuation).lower() for doc in tweets_train ]
 
     tweets_train = [ w.split() for w in tweets_train ]
 
@@ -306,6 +295,7 @@ if __name__ == '__main__':
     # bernoulli.save_pred_labels()
     # accu = bernoulli.report_accuracy()
     # print('accuracy = {}'.format(accu))
+
 
     # performance
     # bernoulli.get_confusion_matrix()
