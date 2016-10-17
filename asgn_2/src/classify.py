@@ -5,7 +5,8 @@ cs534 Implementation Assignment 2
 
 import numpy as np
 import string
-
+#from nltk import word_tokenize
+#from nltk.stem.porter import PorterStemmer
 
 class NaiveBayes(object):
 
@@ -259,14 +260,15 @@ if __name__ == '__main__':
     with open('clintontrump-data/clintontrump.tweets.train', 'r') as f:
         tweets_train = f.readlines()
 
-    # remove punctuation and make all lower case
-    #tweets_train = [ doc.translate(string.maketrans("",""), string.punctuation).lower() for doc in tweets_train ]
-
+    #tweets_train = [ doc.translate(string.maketrans("",""), string.punctuation) for doc in tweets_train ]
+    #tweets_train = [ word_tokenize(doc) for doc in tweets_train ]
     tweets_train = [ w.split() for w in tweets_train ]
 
     with open('clintontrump-data/clintontrump.tweets.dev', 'r') as f:
         tweets_dev = f.readlines()
 
+    #tweets_dev = [ doc.translate(string.maketrans("",""), string.punctuation) for doc in tweets_dev ]
+    #tweets_dev = [ word_tokenize(doc) for doc in tweets_dev ]
     tweets_dev = [ w.split() for w in tweets_dev ]
 
     with open('clintontrump-data/clintontrump.labels.train', 'r') as f:
@@ -279,7 +281,7 @@ if __name__ == '__main__':
     # Bernoulli Model
     # ===============
     bernoulli = NaiveBayes(tweets_train, labels_train, tweets_dev, labels_dev)
-    bernoulli.train_classifier(model='binomial', alpha=1, beta=2, p=0.1)
+    bernoulli.train_classifier(model='binomial', alpha=1, beta=2, p=0)
 
     bernoulli.test_classifier()
 
@@ -300,7 +302,7 @@ if __name__ == '__main__':
     # =================
 
     multi = NaiveBayes(tweets_train, labels_train, tweets_dev, labels_dev)
-    multi.train_classifier(model='multinomial', alpha=1, beta=multi.V_card, p=0.1)
+    multi.train_classifier(model='multinomial', alpha=1, beta=multi.V_card, p=0)
 
     multi.test_classifier(model='multinomial')
 
