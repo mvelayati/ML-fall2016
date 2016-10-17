@@ -31,8 +31,26 @@ class NaiveBayes(object):
         print 'Generating vocabulary...'
         self._get_vocabulary()
 
+    def reduce_vocabulary(self, p=0.1, model='binomial', alpha=1, beta=2):
 
-    def train_classifier(self, model='binomial', alpha=1, beta=2):
+        self._get_classes()
+        self._get_features(model=model)
+        self._compute_likelihoods(alpha, beta, model=model)
+
+        # euclidian distance
+        dist = np.absolute(self.likelihoods[self.classes[0]] - self.likelihoods[self.classes[1]])
+
+        # number of words to remove
+        rm_n = int(self.V_card * p)
+        print 'Removing {0} words from vocabulary of size {1}'.format(rm_n, self.V_card)
+
+        # get the indicies of the rm_n minimum values
+        idx_set = dist.argsort()[:rm_n]
+
+        self.V = np.delete(self.V, idx_set)
+        self.V_card = len(self.V)
+
+    def train_classifier(self, model='binomial', alpha=1, beta=2, p=0.1):
         """
         Training for Bernoulli or Multinomial
 
@@ -40,6 +58,9 @@ class NaiveBayes(object):
         handy for the Priors and Overfitting part in the assignment
         """
 
+        if p > 0:
+            print 'Reducing vocabulary'
+            self.reduce_vocabulary(p=p, model=model, alpha=alpha, beta=beta)
         print 'Retreiving classes...'
         self._get_classes()
         print 'Generating dense features...'
@@ -98,9 +119,16 @@ class NaiveBayes(object):
         Constructs a unique set of words found in all training documents
         """
 
+        rm_list = ['"',  '&', '-', '.', '!', ':', ',', '?']
+
         V_tmp = [ item for sub in self.train_set for item in sub ]
         V_tmp = np.array(V_tmp)
-        self.V = np.unique(V_tmp)
+        V_tmp = np.unique(V_tmp)
+        rm_set = []
+        for i in range(len(V_tmp)):
+            if V_tmp[i] in rm_list:
+                rm_set.append(i)
+        self.V = np.delete(V_tmp, rm_set)
         self.V_card = len(self.V)
 
     def _get_classes(self):
@@ -187,8 +215,7 @@ class NaiveBayes(object):
         Bernoulli model
         """
 
-        log_sum = 0
-        log_sum += np.dot(doc.T, np.log(self.likelihoods[_class])) + (np.dot((1-doc).T, np.log(1-self.likelihoods[_class])))
+        log_sum = np.dot(doc.T, np.log(self.likelihoods[_class])) + (np.dot((1-doc).T, np.log(1-self.likelihoods[_class])))
 
         return log_sum
 
@@ -197,8 +224,7 @@ class NaiveBayes(object):
         Multinomial model
         """
 
-        log_sum = 0
-        log_sum += np.dot(doc.T, np.log(self.likelihoods[_class]))
+        log_sum = np.dot(doc.T, np.log(self.likelihoods[_class]))
 
         return log_sum
 
@@ -249,28 +275,45 @@ if __name__ == '__main__':
     with open('clintontrump-data/clintontrump.labels.dev', 'r') as f:
         labels_dev = f.read().split()
 
-
     # ===============
     # Bernoulli Model
     # ===============
     bernoulli = NaiveBayes(tweets_train, labels_train, tweets_dev, labels_dev)
-    bernoulli.train_classifier(model='binomial', alpha=1, beta=2)
+    bernoulli.train_classifier(model='binomial', alpha=1, beta=2, p=0.1)
 
     bernoulli.test_classifier()
 
     # performance
     bernoulli.get_confusion_matrix()
 
+    # top ten words
+    h = bernoulli.likelihoods[bernoulli.classes[0]].argsort()[-10:]
+    t = bernoulli.likelihoods[bernoulli.classes[1]].argsort()[-10:]
+    print ''
+    print 'Hillary top 10'
+    print [ bernoulli.V[i] for i in h ]
+    print 'Trump top 10'
+    print [ bernoulli.V[i] for i in t ]
+
     # =================
     # Multinomial Model
     # =================
 
     multi = NaiveBayes(tweets_train, labels_train, tweets_dev, labels_dev)
-    multi.train_classifier(model='multinomial', alpha=1, beta=multi.V_card)
+    multi.train_classifier(model='multinomial', alpha=1, beta=multi.V_card, p=0.1)
 
     multi.test_classifier(model='multinomial')
 
     # performance
     multi.get_confusion_matrix()
+
+    # top ten words
+    h = multi.likelihoods[multi.classes[0]].argsort()[-10:]
+    t = multi.likelihoods[multi.classes[1]].argsort()[-10:]
+    print ''
+    print 'Hillary top 10'
+    print [ multi.V[i] for i in h ]
+    print 'Trump top 10'
+    print [ multi.V[i] for i in t ]
 
 
