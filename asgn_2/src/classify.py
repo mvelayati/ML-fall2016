@@ -132,7 +132,8 @@ class NaiveBayes(object):
         V_tmp = np.unique(V_tmp)
         rm_set = []
         for i in range(len(V_tmp)):
-            if V_tmp[i] in rm_list:
+            V_temp_l = V_tmp[i].lower()
+            if V_temp_l in rm_list:
                 rm_set.append(i)
         self.V = np.delete(V_tmp, rm_set)
         self.V_card = len(self.V)
@@ -165,10 +166,10 @@ class NaiveBayes(object):
                 f = self._get_binomial_feature(self.train_set[i])
                 #self.features2[self.train_labels[i]].append(f)
             if model == 'multinomial':
-                #g = self._get_binomial_feature(self.train_set[i])
-                #self.features2[self.train_labels[i]].append(g)
-                f = self._get_multinomial_feature(self.train_set[i])
-            self.features[self.train_labels[i]].append(f)
+                g = self._get_binomial_feature(self.train_set[i])
+                self.features2[self.train_labels[i]].append(g)
+                k = self._get_multinomial_feature(self.train_set[i])
+            self.features[self.train_labels[i]].append(k)
 
     def _get_binomial_feature(self, doc):
         """
@@ -218,9 +219,10 @@ class NaiveBayes(object):
             if model == 'binomial':
                 self.likelihoods[_class] = (n+alpha)/float(self.Nk[_class]+beta)
             if model == 'multinomial':
-                #d_t = np.sum(self.features2[_class], axis=0)
-                #self.likelihoods[_class] = ((n*(1 + (np.log(self.Nk[_class]/d_t))))+alpha)/float(Tk+beta)
-                self.likelihoods[_class] = (n + alpha) / float(Tk + beta)
+                d_t = np.sum(self.features2[_class], axis=0)
+                self.likelihoods[_class] = ((n * ((np.log((self.Nk[_class] + 2) / (d_t + 1))))) + alpha) / float(
+                    Tk + beta)
+                #self.likelihoods[_class] = (n + alpha) / float(Tk + beta)
 
 
     def _bernoulli(self, doc, _class):
@@ -359,8 +361,6 @@ if __name__ == '__main__':
     # Multinomial Model
     # =================
 
-    # <editor-fold desc="Multinomial Model">
-
     multi = NaiveBayes(tweets_train, labels_train, tweets_dev, labels_dev, stopwords)
     #multi.MAP_estimation()
     multi.train_classifier(model='multinomial', alpha=1, beta=multi.V_card, p=0)
@@ -381,11 +381,7 @@ if __name__ == '__main__':
     print('Trump top 10')
     print([ multi.V[i] for i in t ])
 
-    # </editor-fold>
+    # multi = NaiveBayes(tweets_train, labels_train, tweets_dev, labels_dev, stopwords)
+    # multi.MAP_estimation()
+    #
 
-    # <editor-fold desc="Priors and overfitting">
-
-    multi = NaiveBayes(tweets_train, labels_train, tweets_dev, labels_dev, stopwords)
-    #multi.MAP_estimation()
-
-    # </editor-fold>
