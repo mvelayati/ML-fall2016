@@ -163,7 +163,6 @@ class NaiveBayes(object):
         for i in range(len(self.train_set)):
             if model == 'binomial':
                 f = self._get_binomial_feature(self.train_set[i])
-                #self.features2[self.train_labels[i]].append(f)
             if model == 'multinomial':
                 #g = self._get_binomial_feature(self.train_set[i])
                 #self.features2[self.train_labels[i]].append(g)
@@ -219,8 +218,8 @@ class NaiveBayes(object):
                 self.likelihoods[_class] = (n+alpha)/float(self.Nk[_class]+beta)
             if model == 'multinomial':
                 d_t = np.sum(self.features2[_class], axis=0)
-                self.likelihoods[_class] = ((n*((np.log((self.Nk[_class]+2)/(d_t+1)))))+alpha)/float(Tk+beta)
-                #self.likelihoods[_class] = (n + alpha) / float(Tk + beta)
+                #self.likelihoods[_class] = (((n+1)*((np.log((self.Nk[_class]+2)/(d_t+1)))))+alpha)/float(Tk+beta)
+                self.likelihoods[_class] = (n + alpha) / float(Tk + beta)
 
 
     def _bernoulli(self, doc, _class):
@@ -331,43 +330,44 @@ if __name__ == '__main__':
         stopwords = f.read().split()
 
 
+    # lambda parameter
+    p = 0
     # ===============
     # Bernoulli Model
     # ===============
 
-    # bernoulli = NaiveBayes(tweets_train, labels_train, tweets_dev, labels_dev, stopwords)
-    # bernoulli.train_classifier(model='binomial', alpha=1, beta=2, p=0)
-    # bernoulli.test_classifier()
-    # bernoulli.save_pred_labels()
-    # accu = bernoulli.report_accuracy()
-    # print('accuracy = {}'.format(accu))
-    #
-    #
-    # # performance
-    # bernoulli.get_confusion_matrix()
-    #
-    # # top ten words
-    # h = bernoulli.likelihoods[bernoulli.classes[0]].argsort()[-10:]
-    # t = bernoulli.likelihoods[bernoulli.classes[1]].argsort()[-10:]
-    # print('')
-    # print('Hillary top 10')
-    # print([ bernoulli.V[i] for i in h ])
-    # print('Trump top 10')
-    # print([ bernoulli.V[i] for i in t ])
+    bernoulli = NaiveBayes(tweets_train, labels_train, tweets_dev, labels_dev, stopwords)
+    bernoulli.train_classifier(model='binomial', alpha=1, beta=2, p=p)
+    bernoulli.test_classifier()
+    bernoulli.save_pred_labels()
+    accu = bernoulli.report_accuracy()
+    print 'vocab size: ', bernoulli.V_card
+    print('accuracy = {}'.format(accu))
+
+    # performance
+    bernoulli.get_confusion_matrix()
+
+    # top ten words
+    h = bernoulli.likelihoods[bernoulli.classes[0]].argsort()[-10:]
+    t = bernoulli.likelihoods[bernoulli.classes[1]].argsort()[-10:]
+    print('')
+    print('Hillary top 10')
+    print([ bernoulli.V[i] for i in h ])
+    print('Trump top 10')
+    print([ bernoulli.V[i] for i in t ])
 
     # =================
     # Multinomial Model
     # =================
 
-    # <editor-fold desc="Multinomial Model">
-
     multi = NaiveBayes(tweets_train, labels_train, tweets_dev, labels_dev, stopwords)
     #multi.MAP_estimation()
-    multi.train_classifier(model='multinomial', alpha=1, beta=multi.V_card, p=0)
+    multi.train_classifier(model='multinomial', alpha=1, beta=multi.V_card, p=p)
 
     multi.test_classifier(model='multinomial')
     multi.save_pred_labels()
     accu = multi.report_accuracy()
+    print 'vocab size: ', multi.V_card
     print('accuracy = {}'.format(accu))
     # performance
     multi.get_confusion_matrix()
@@ -381,11 +381,6 @@ if __name__ == '__main__':
     print('Trump top 10')
     print([ multi.V[i] for i in t ])
 
-    # </editor-fold>
-
-    # <editor-fold desc="Priors and overfitting">
-
     multi = NaiveBayes(tweets_train, labels_train, tweets_dev, labels_dev, stopwords)
     #multi.MAP_estimation()
 
-    # </editor-fold>

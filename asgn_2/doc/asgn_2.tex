@@ -145,8 +145,8 @@ where the priors are calculated using equation (9).
 \caption{Overall testing accuracy for each model}
 \begin{tabular}{|r|c|} \hline
 	Model & testing accuracy \\ \hline
-	Bernoulli & 91.61\% \\ \hline
-	Multinomial & 92.08\% \\ \hline
+	Bernoulli & 92.39\% \\ \hline
+	Multinomial & 92.70\% \\ \hline
 \end{tabular}
 \end{table}
 
@@ -159,8 +159,8 @@ where the priors are calculated using equation (9).
         \caption{Bernoulli model}
         \begin{tabular}{|c|c|c|} \hline
             class & $y=H$ & $y=T$ \\ \hline
-            $\hat{y}=H$ & 46.58 & 5.28 \\ \hline
-	    $\hat{y}=T$ & 3.11 & 45.03 \\ \hline
+            $\hat{y}=H$ & 47.20 & 5.12 \\ \hline
+	    $\hat{y}=T$ & 2.48 & 45.19 \\ \hline
         \end{tabular}
     \end{subtable}%
     \begin{subtable}{.5\linewidth}
@@ -168,8 +168,8 @@ where the priors are calculated using equation (9).
         \caption{Multinomial model}
         \begin{tabular}{|c|c|c|} \hline
             class & $y=H$ & $y=T$\\ \hline
-            $\hat{y}=H$ & 47.36 & 5.59 \\ \hline
-	    $\hat{y}=T$ & 2.33 & 44.72 \\ \hline
+            $\hat{y}=H$ & 47.20 & 4.81 \\ \hline
+	    $\hat{y}=T$ & 2.48 & 45.50 \\ \hline
         \end{tabular}
     \end{subtable} 
 \end{table}
@@ -179,20 +179,22 @@ where the priors are calculated using equation (9).
 \begin{table}[!htb]
 \centering
 \caption{Top ten most likely words from each account}
-\begin{tabular}{|r|c|c|} \hline
+\begin{tabular}{|r|l|l|} \hline
 	Rank & $H$ & $T$ \\ \hline
-	1 & is & on \\ \hline
-	2 & Hillary & you \\ \hline
-	3 & in &  of \\ \hline
-	4 & for & is  \\ \hline
-	5 & Trump & a \\ \hline
-	6 & of & in \\ \hline
-	7 & and & I \\ \hline
-	8 & a & and \\ \hline
-	9 & the & to \\ \hline
-	10 & to & the \\ \hline
+	1 & make & great \\ \hline
+	2 & people & The \\ \hline
+	3 & America &  \#MakeAmericaGreatAgain \\ \hline
+	4 & president & Trump \\ \hline
+	5 & can & @realDonaldTrump \\ \hline
+	6 & I & \#Trump2016 \\ \hline
+	7 & We & Hillary \\ \hline
+	8 & Donald & Thank \\ \hline
+	9 & Hillary & will \\ \hline
+	10 & Trump & I \\ \hline
 \end{tabular}
 \end{table}
+
+
 
 
 \end{enumerate}
@@ -225,23 +227,23 @@ We tested the effect of $\lambda$ values in the range $(0.1,\dots,0.9)$ on the c
 
 \begin{table}[!htb]
 \centering
-\caption{Change in model accuracy resulting from vocabulary reduction}
+\caption{Change in model accuracy resulting from vocabulary reduction. Bold face values indicate the best classification accuracy for each model.}
 \begin{tabular}{|c|c|c|c|} \hline
 	$\lambda$ & Bernoulli accuracy (\%) & Multinomial accuracy (\%) & $|V^{\prime}|$ \\ \hline
-	0.1 & 92.24 & 92.24 & 12,220 \\ \hline
-	0.2 & 92.55 & 92.24 & 10,862 \\ \hline
-	0.3 & 92.24 & 91.93 & 9,504 \\ \hline
-	0.4 & 91.77 & 91.62 & 8,146 \\ \hline
-	0.5 & 92.23 & 92.24 & 6,789 \\ \hline
-	0.6 & 92.71 & 92.24 & 5,431 \\ \hline
-	0.7 & 92.24 & 91.93 & 4,073 \\ \hline
-	0.8 & 91.31 & 91.31 & 2,715 \\ \hline
-	0.9 & 90.53 & 90.21 & 1,357 \\ \hline
+	0.1 & 92.24 & 92.70 & 12,061 \\ \hline
+	0.2 & 92.08 & 93.01 & 10,721 \\ \hline
+	0.3 & 90.99 & \textbf{93.17} & 9,381 \\ \hline
+	0.4 & 90.22 & 92.86 & 8,041 \\ \hline
+	0.5 & 91.61 & 92.85 & 6,701 \\ \hline
+	0.6 & 92.55 & 92.70 & 5,361 \\ \hline
+	0.7 & \textbf{93.17} & 92.55 & 4,021 \\ \hline
+	0.8 & 91.77 & 92.39 & 2,681 \\ \hline
+	0.9 & 90.53 & 90.06 & 1,341 \\ \hline
 \end{tabular}
 \end{table}
 
 \noindent
-In both models, the accuracy is slightly improved by retaining only words with relatively large discriminative power in the dictionary. For the Bernoulli case, this improvement persists up to a 70\% reduction in vocabulary size. And for the Multinomial case, up to a 60\% reduction. In both cases, a comparable classification accuracy can be achieved while reducing the vocabulary size to 90\% of it's original dimension.
+In both models, the accuracy can slightly improved by retaining only words with relatively large discriminative power in the dictionary. For the Bernoulli case, this improvement is highest at a 70\% reduction in vocabulary size. And for the Multinomial case, at 30\% reduction. In both cases, a comparable classification accuracy can be achieved while reducing the vocabulary size to 90\% of it's original dimension.
 
 \subsection{Bonus}
 
