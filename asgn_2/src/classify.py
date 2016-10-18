@@ -218,9 +218,9 @@ class NaiveBayes(object):
             if model == 'binomial':
                 self.likelihoods[_class] = (n+alpha)/float(self.Nk[_class]+beta)
             if model == 'multinomial':
-                #d_t = np.sum(self.features2[_class], axis=0)
-                #self.likelihoods[_class] = ((n*(1 + (np.log(self.Nk[_class]/d_t))))+alpha)/float(Tk+beta)
-                self.likelihoods[_class] = (n + alpha) / float(Tk + beta)
+                d_t = np.sum(self.features2[_class], axis=0)
+                self.likelihoods[_class] = ((n*((np.log((self.Nk[_class]+2)/(d_t+1)))))+alpha)/float(Tk+beta)
+                #self.likelihoods[_class] = (n + alpha) / float(Tk + beta)
 
 
     def _bernoulli(self, doc, _class):
