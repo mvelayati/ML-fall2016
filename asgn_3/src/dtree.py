@@ -63,11 +63,12 @@ class TrainTree(object):
                     cnt += 1
                     # compute theta (half the dist in x[i] where lab changes)
                     theta = (sx[i,j-1] + sx[i,j])/2.0
-                    # add parition to P
-                    P[cnt] = {'feature': i,
-                              'theta'  : theta,
-                              'T'      : {'x': sx[:,0:j], 'y': sy[0:j]},
-                              'F'      : {'x': sx[:,j:], 'y': sy[j:]}}
+                    if theta != sx[i,j-1]:
+                        # add parition to P
+                        P[cnt] = {'feature': i,
+                                'theta'  : theta,
+                                'T'      : {'x': sx[:,0:j], 'y': sy[0:j]},
+                                'F'      : {'x': sx[:,j:], 'y': sy[j:]}}
 
         return P
 
@@ -77,6 +78,8 @@ class TrainTree(object):
         I(Y,X) = H(y) - sum(P(X=x)H(Y|X=x)
         """
         I = 0.0
+        # dictionary of all I for each feature and theta for report
+        Itf = {}
         # best partition base on I(Y,X)
         Pb = None
 
@@ -90,11 +93,14 @@ class TrainTree(object):
             pf = len(P[p]['F']['y'])/N
             # compute information gain for partition
             Itmp = H - (pt*Ht + pf*Hf)
+            if P[p]['feature'] not in Itf.keys():
+                Itf[P[p]['feature']] = {}
+            Itf[P[p]['feature']][P[p]['theta']] = Itmp
             if Itmp > I:
                 I = Itmp
                 Pb = p
 
-        return Pb, I
+        return Pb, I, Itf
 
     def train(self, x, y, feature_bagging=False):
         """
@@ -134,7 +140,7 @@ class TrainTree(object):
             P = self._partition(x,y)
 
         # get best partition based on I(Y,X)
-        Pb,I = self._information_gain(H, P)
+        Pb,I,junk = self._information_gain(H, P)
 
         # if there is no gain then return y
         if I <= 0:
@@ -282,6 +288,13 @@ class TestTree(object):
 if __name__ == '__main__':
 
     # PART 1
+    # I() for each feature and thresholda at root
+    train = TrainTree('data/iris_train.csv', 0)
+    P = train._partition(train.x, train.y)
+    H = train._entropy(train.y)
+    Pb, I, Itf = train._information_gain(H, P)
+    pprint(Itf)
+
     # iterate k
     train_acc = []
     test_acc = []
