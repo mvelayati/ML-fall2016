@@ -119,7 +119,7 @@ class TrainTree(object):
             return rv
 
         # if number of instances in y is less than k then return y
-        if len(y) <= self.k:
+        if len(y) < self.k:
             rv = [0,0,0]
             u,c = np.unique(y, return_counts=True)
             for i in range(len(c)):
@@ -152,10 +152,11 @@ class TrainTree(object):
 
         # for both evaluations (T and F) recursively run train()
         for i in range(2):
-            tree['x{0}<{1}'.format(P[Pb]['feature'], P[Pb]['theta'])] = self.train(P[Pb]['T']['x'], P[Pb]['T']['y'])
-            tree['x{0}>{1}'.format(P[Pb]['feature'], P[Pb]['theta'])] = self.train(P[Pb]['F']['x'], P[Pb]['F']['y'])
+            tree['x[{0}]<={1}'.format(P[Pb]['feature'], P[Pb]['theta'])] = self.train(P[Pb]['T']['x'], P[Pb]['T']['y'])
+            tree['x[{0}]>{1}'.format(P[Pb]['feature'], P[Pb]['theta'])] = self.train(P[Pb]['F']['x'], P[Pb]['F']['y'])
 
         return tree
+
 
     def get_missed(self, tree):
         """
@@ -176,75 +177,46 @@ class TestTree(object):
 
         data = np.genfromtxt(train_csv, delimiter=';')
         self.x = data[:,0:4].T
-        self.y = data[:,4]
+        self.y = data[:,4].astype(np.int)
 
-        self.missed = 0.0
+        self.yhat = self.test(trained_tree)
 
-        self.test(trained_tree)
-        self.accuracy = (1 - (self.missed/len(self.y)))*100
-
-    def _split(self, x, y, test, classify=True):
-        """
-        Splits data based on feature and threshold. If the trained
-        tree is on a leaf node, calculate missclassifications
-        """
-
-        x = self.x
-        y = self.y
-
-        # parse the test string
-        row = int(test[1])
-        condition = test[2]
-        theta = float(test[3:])
-
-        # sort and split
-        s = x[row].argsort()
-        xs = x[:,s]
-        ys = y[s]
-        for i in xs[row]:
-            if xs[row][i] >= theta:
-                break
-        xpL = xs[:,0:i]
-        ypL = ys[0:i]
-        xpG = xs[:,i:]
-        ypG = ys[i:]
-
-        # messy but it works
-        if classify:
-            if condition == '<':
-                if ypL.any():
-                    u,c = np.unique(ypL, return_counts=True)
-                    self.missed += np.sum(c[c != np.max(c)])
-            else:
-                if ypG.any():
-                    u,c = np.unique(ypG, return_counts=True)
-                    self.missed += np.sum(c[c != np.max(c)])
-        else:
-            if condition == '<':
-                return xpL, ypL
-            else:
-                return xpG, ypG
-
+        missed = 0.0
+        for i in range(len(self.y)):
+            if self.y[i] != self.yhat[i]:
+                missed += 1
+        self.accuracy = (1 - (missed/len(self.y)))*100
 
     def test(self, trained_tree):
-        """
-        BFS graph traversal of trained tree to classify test data
-        """
+
         x = self.x
-        y = self.y
-        Q = [] # Stack
-        Q.append(trained_tree)
+
+        yhat = []
+        for i in range(len(x[0])):
+            yhat.append(self.classify_sample(x[:,i], trained_tree))
+
+        return np.array(yhat)
+
+    def classify_sample(self, x, tree):
+
+        Q = []
+        Q.append(tree)
         while Q:
-            cur_dict = Q.pop(0)
-            for k in cur_dict.keys():
-                if isinstance(cur_dict[k], list):
-                    self._split(x,y,k,classify=True)
-                else:
-                    x,y = self._split(x,y,k,classify=False)
-                    Q.append(cur_dict[k])
+            sub_tree = Q.pop(0)
+            for k in sub_tree.keys():
+                if eval(k):
+                    if isinstance(sub_tree[k], list):
+                        return np.argmax(sub_tree[k])
+                    else:
+                        Q.append(sub_tree[k])
 
 
 if __name__ == '__main__':
+
+    train = TrainTree('data/iris_train.csv', 10)
+    pprint(train.tree)
+    test = TestTree('data/iris_test.csv', train.tree)
+    print test.accuracy
 
     # PART 1
 
