@@ -130,11 +130,11 @@ class TrainTree(object):
 
         # enumerate partitions
         # random numbers for feature bagging
-        r1 = random.randint(0,3)
-        r2 = random.randint(0,3)
-        while r1 == r2:
-            r2 = random.randint(0,3)
         if feature_bagging:
+            r1 = random.randint(0,3)
+            r2 = random.randint(0,3)
+            while r1 == r2:
+                r2 = random.randint(0,3)
             P = self._partition(x,y, feature_bagging=[r1,r2])
         else:
             P = self._partition(x,y)
