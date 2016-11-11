@@ -7,6 +7,7 @@ cs534: Implementation assignment 3
 import numpy as np
 from pprint import pprint
 import matplotlib.pyplot as plt
+import random
 
 class TrainTree(object):
 
@@ -43,7 +44,7 @@ class TrainTree(object):
 
         return H
 
-    def _partition(self, x, y):
+    def _partition(self, x, y, feature_bagging = [0,1,2,3]):
         """
         Enumerate all 'meaningful' paritions
         """
@@ -52,7 +53,7 @@ class TrainTree(object):
 
         # for each feature i, sort data based on i and find theata where
         # class label changes then split and add both partitions to P
-        for i in range(len(x)):
+        for i in feature_bagging:
 
             # get the sorting indicies for feature x[i]
             s = x[i].argsort()
@@ -102,7 +103,7 @@ class TrainTree(object):
 
         return Pb, I
 
-    def train(self, x, y):
+    def train(self, x, y, feature_bagging=False):
         """
         Recursive method for top down induction
         """
@@ -129,7 +130,15 @@ class TrainTree(object):
         H = self._entropy(y)
 
         # enumerate partitions
-        P = self._partition(x,y)
+        # random numbers for feature bagging
+        r1 = random.randint(0,3)
+        r2 = random.randint(0,3)
+        while r1 == r2:
+            r2 = random.randint(0,3)
+        if feature_bagging:
+            P = self._partition(x,y, feature_bagging=[r1,r2])
+        else:
+            P = self._partition(x,y)
 
         # get best partition based on I(Y,X)
         Pb,I = self._information_gain(H, P)
@@ -257,4 +266,4 @@ if __name__ == '__main__':
     plt.ylabel("Accuracy (%)")
     fig.savefig('iter_k.png')
 
-
+   # PART 2
