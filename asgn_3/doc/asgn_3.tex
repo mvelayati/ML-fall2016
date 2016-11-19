@@ -10,6 +10,7 @@
 \usepackage[linesnumbered, ruled]{algorithm2e}
 \SetKwRepeat{Do}{do}{while}%
 \usepackage{titlesec}
+\usepackage{multirow}
 
 \renewcommand{\labelenumi}{(\alph{enumi})}
 \renewcommand{\vec}[1]{\mathbf{#1}}
@@ -35,6 +36,39 @@
 \subsection{(a) Decision tree learning algorithm}
 
 \subsection{(b) Information gain}
+
+\begin{table}[ht]
+    \centering
+    \caption{Information gain for each feature and threshold at the root node}
+    \begin{tabular}{|c|c|c|}
+        \hline $x$ & $\theta$ & I$(Y, X)$ \\ \hline
+        \multirow{9}{*}{$x_1$} & 5.15 & 0.38 \\ \cline{2-3}
+                               & 5.35 & 0.48 \\ \cline{2-3}
+                               & 5.55 & 0.59 \\ \cline{2-3}
+                               & 5.95 & 0.48 \\ \cline{2-3}
+                               & 6.15 & 0.4 \\ \cline{2-3}
+                               & 6.25 & 0.37 \\ \cline{2-3}
+                               & 6.35 & 0.3 \\ \cline{2-3}
+                               & 6.55 & 0.18 \\ \cline{2-3}
+                               & 6.75 & 0.16 \\ \hline
+        \multirow{9}{*}{$x_2$} & 2.1 & 0.01 \\ \cline{2-3}
+                               & 2.35 & 0.03 \\ \cline{2-3}
+                               & 2.55 & 0.08 \\ \cline{2-3}
+                               & 2.65 & 0.1 \\ \cline{2-3}
+                               & 2.85 & 0.2 \\ \cline{2-3}
+                               & 3.15 & 0.34 \\ \cline{2-3}
+                               & 3.25 & 0.32 \\ \cline{2-3}
+                               & 3.35 & 0.3 \\ \cline{2-3}
+                               & 3.85 & 0.07 \\ \hline
+        \multirow{2}{*}{$x_3$} & 2.45 & 0.92 \\ \cline{2-3}
+                               & 4.85 & 0.7 \\ \hline
+        \multirow{5}{*}{$x_4$} & 0.8 & 0.92 \\ \cline{2-3}
+                               & 1.35 & 0.67 \\ \cline{2-3}
+                               & 1.45 & 0.64 \\ \cline{2-3}
+                               & 1.55 & 0.64 \\ \cline{2-3}
+                               & 1.75 & 0.68 \\ \hline
+    \end{tabular}
+\end{table}
 
 \subsection{(c) Training and testing error vs $k$}
 
